@@ -47,12 +47,44 @@ const ui = t(lang);
     <Seo {...props} />
     <JsonLd schema={localBusinessSchema(lang)} />
 
-    <!-- Işık tercihini boyamadan ÖNCE uygula: yanıp sönme (FOUC) olmasın -->
-    <script is:inline>
-      try {
-        const v = localStorage.getItem("lamp-light");
-        if (v === "on") document.documentElement.dataset.light = "on";
-      } catch {}
+    <!--
+      Işık durumu boyamadan ÖNCE belirlenir (yanıp sönme yok):
+      - kullanıcı anahtarla seçtiyse (localStorage) o geçerli,
+      - seçmediyse site.config.ts → defaultLight: "intro" ise sayfa aydınlık açılır,
+        yüklenince ~1 sn sonra ışıklar söner ve lambalar yanık kalır. Gösteri oturum
+        başına bir kez oynar; sonraki sayfalar doğrudan yanık açılır.
+    -->
+    <script is:inline define:vars={{ mode: site.defaultLight }}>
+      (() => {
+        const root = document.documentElement;
+        let stored = null, seen = null;
+        try {
+          stored = localStorage.getItem("lamp-light");
+          seen = sessionStorage.getItem("lamp-intro");
+        } catch {}
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (stored === "on" || stored === "off") { root.dataset.light = stored; return; }
+        if (mode === "off") return;
+        if (mode === "on" || seen || reduce) { root.dataset.light = "on"; return; }
+
+        root.dataset.light = "off";
+        root.dataset.intro = "pending";
+        try { sessionStorage.setItem("lamp-intro", "1"); } catch {}
+
+        let played = false;
+        const play = () => {
+          if (played) return;
+          played = true;
+          if (root.dataset.intro !== "pending") return; // kullanıcı araya girdi
+          root.dataset.light = "on";
+          root.dataset.intro = "playing";
+          window.dispatchEvent(new Event("lamp:change"));
+          setTimeout(() => { delete root.dataset.intro; }, 2400);
+        };
+        addEventListener("load", () => setTimeout(play, 900));
+        setTimeout(play, 3500);
+      })();
     </script>
   </head>
 

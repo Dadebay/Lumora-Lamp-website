@@ -72,6 +72,14 @@ export const site = {
   },
 
   /**
+   * İlk ziyarette ışık davranışı (kullanıcı anahtarla kendi tercihini yaptıysa o geçerli):
+   *  "intro" → sayfa aydınlık açılır, ~1 sn sonra ışıklar söner, lambalar yanık kalır (varsayılan)
+   *  "on"    → doğrudan karanlık/yanık açılır
+   *  "off"   → aydınlık açılır, kendiliğinden değişmez
+   */
+  defaultLight: "intro" as "intro" | "on" | "off",
+
+  /**
    * true → footer'da "bu bir demo" şeridi görünür ve sahte işletme şeması
    * (adres/koordinat) yayımlanmaz. Gerçek müşteriye teslim ederken false yap.
    */

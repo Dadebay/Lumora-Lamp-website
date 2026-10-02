@@ -47,12 +47,14 @@ const { lang } = Astro.props;
     };
 
     btn.addEventListener("click", () => {
+      delete root.dataset.intro;
       const next = root.dataset.light === "on" ? "off" : "on";
       root.dataset.light = next;
       try { localStorage.setItem("lamp-light", next); } catch {}
       sync();
     });
 
+    window.addEventListener("lamp:change", sync);
     sync();
   })();
 </script>

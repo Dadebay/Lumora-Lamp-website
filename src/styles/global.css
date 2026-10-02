@@ -182,6 +182,15 @@ body::after {
   transition: opacity 900ms var(--ease-lamp);
 }
 
+/* Işıklar kendiliğinden söndüğünde ampul butonuna iki kez halka: anahtarı fark ettirir */
+@keyframes lamp-ping {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-glow) 60%, transparent); }
+  to   { box-shadow: 0 0 0 16px transparent; }
+}
+html[data-intro="playing"] #light-toggle {
+  animation: lamp-ping 1.1s ease-out 2;
+}
+
 /* Ürün kartı hover'da hafif yükselme */
 .card-media {
   transition: transform 500ms var(--ease-lamp);

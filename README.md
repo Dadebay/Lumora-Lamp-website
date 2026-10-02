@@ -43,6 +43,12 @@ Each product has two photos taken from the same angle (off + on); the transition
 pure CSS. JavaScript only writes the switch state to `<html data-light>`; the choice
 is remembered in `localStorage` and applied before first paint (no flash).
 
+**The intro.** A first-time visitor lands on the bright page; about a second after it
+loads, the room lights go out on their own and the lamps stay glowing, while the bulb
+button pulses twice so people notice the switch. It plays once per session, only for
+visitors who haven't picked a side themselves, and is skipped with `prefers-reduced-motion`.
+Control it with `defaultLight` in `site.config.ts` (`"intro"` default, `"on"`, `"off"`).
+
 <table>
   <tr>
     <th align="center">Light off</th>
@@ -110,7 +116,7 @@ The cart lives in the browser and there is no checkout: the cart turns into a **
 
 ## Features
 
-- **Light switch**: the whole page and catalog change with one switch, the choice is remembered, `prefers-reduced-motion` is respected.
+- **Light switch**: the whole page and catalog change with one switch, the choice is remembered, and first-time visitors get a short "lights go out" intro (`defaultLight`). `prefers-reduced-motion` is respected.
 - **Three languages (EN default, TR, RU)**: localized URLs, `hreflang`, and a language menu that always links to the same page in the other language.
 - **Floating navbar**: frosted-glass pill with the bulb button, language menu, cart badge and a CTA.
 - **Cart**: `localStorage`, quantity controls, estimated total, quote-form / chat hand-off.

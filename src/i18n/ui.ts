@@ -34,7 +34,7 @@ const en = {
     home: {
       heroLine1: "Switch on the light.",
       heroLine2: "See the difference.",
-      heroSub: "Use the switch in the top right to see the entire collection lit up.",
+      heroSub: "The lights are on. Use the bulb in the top right to bring the daylight back.",
       viewCollection: "View the collection",
       requestQuote: "Request a quote",
       featured: "Featured",
@@ -192,7 +192,7 @@ const tr = {
     home: {
       heroLine1: "Işığı açın.",
       heroLine2: "Farkı görün.",
-      heroSub: "Sağ üstteki anahtarla bütün koleksiyonu yanar hâlde görebilirsiniz.",
+      heroSub: "Işıklar yanıyor. Gün ışığını geri getirmek için sağ üstteki ampulü kullanın.",
       viewCollection: "Koleksiyonu görün",
       requestQuote: "Teklif isteyin",
       featured: "Öne Çıkanlar",
@@ -350,7 +350,7 @@ const ru = {
     home: {
       heroLine1: "Включите свет.",
       heroLine2: "Увидите разницу.",
-      heroSub: "Переключателем в правом верхнем углу можно увидеть всю коллекцию включённой.",
+      heroSub: "Свет включён. Чтобы вернуть дневной свет, нажмите на лампочку в правом верхнем углу.",
       viewCollection: "Смотреть коллекцию",
       requestQuote: "Запросить предложение",
       featured: "Рекомендуемые",
