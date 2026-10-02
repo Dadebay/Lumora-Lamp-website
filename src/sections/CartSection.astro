@@ -1,0 +1,192 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { site, primaryChat } from "../../site.config.ts";
+import { buildCatalog, jsonForScript } from "../lib/cartData.ts";
+import { allLocales, cartHref, contactHref, productsBase, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const c = ui.cart;
+const catalog = await buildCatalog(lang, true);
+const localeUrls = allLocales((l) => cartHref(l));
+
+const btnPrimary =
+  "block w-full rounded-full bg-[var(--page-fg)] px-6 py-3 text-center text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85";
+const btnOutline =
+  "block w-full rounded-full border border-[var(--page-line)] px-6 py-3 text-center text-sm transition-colors duration-300 hover:border-[var(--color-glow)]";
+---
+<Layout title={c.title} description={c.description} lang={lang} localeUrls={localeUrls} noindex>
+  <div
+    id="cart-app"
+    class="mx-auto max-w-[1100px] px-5 py-12 md:px-8 md:py-16"
+    data-currency={site.currency}
+    data-price-locale={site.priceLocale}
+    data-chat-href={primaryChat.href}
+    data-intro={c.messageIntro}
+    data-total-label={c.estimatedTotal}
+  >
+    <h1 class="display text-4xl">{c.title}</h1>
+
+    <!-- Boş sepet -->
+    <div id="cart-empty" hidden class="mx-auto max-w-md py-24 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[var(--page-line)] opacity-70">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true">
+          <path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" />
+          <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+        </svg>
+      </div>
+      <h2 class="display mt-6 text-2xl">{c.empty}</h2>
+      <p class="mt-3 text-sm leading-relaxed opacity-65">{c.emptyHint}</p>
+      <a href={productsBase(lang)} class={`${btnPrimary} mx-auto mt-8 !inline-block !w-auto`}>{c.browse}</a>
+    </div>
+
+    <!-- Dolu sepet -->
+    <div id="cart-content" hidden class="mt-10 grid gap-10 lg:grid-cols-[1fr_360px] lg:gap-14">
+      <div>
+        <ul id="cart-list" class="divide-y divide-[var(--page-line)] border-y border-[var(--page-line)]"></ul>
+        <button id="cart-clear" type="button" class="mt-4 cursor-pointer text-xs underline underline-offset-4 opacity-55 transition-opacity hover:opacity-100">
+          {c.clear}
+        </button>
+      </div>
+
+      <aside class="h-fit rounded-2xl border border-[var(--page-line)] p-6 lg:sticky lg:top-28">
+        <h2 class="text-[11px] uppercase tracking-[0.18em] opacity-50">{c.summary}</h2>
+        <dl class="mt-5 space-y-3 text-sm" aria-live="polite">
+          <div class="flex justify-between gap-4">
+            <dt class="opacity-60">{c.items}</dt>
+            <dd id="cart-items" class="tabular-nums">0</dd>
+          </div>
+          <div class="flex items-baseline justify-between gap-4 border-t border-[var(--page-line)] pt-4">
+            <dt>{c.estimatedTotal}</dt>
+            <dd id="cart-total" class="display text-2xl tabular-nums">—</dd>
+          </div>
+        </dl>
+        <p class="mt-4 text-xs leading-relaxed opacity-50">{c.note}</p>
+
+        <div class="mt-6 space-y-2.5">
+          <a href={contactHref(lang, "cart=1")} class={btnPrimary}>{c.requestQuote}</a>
+          <a id="cart-chat" href={primaryChat.href} target="_blank" rel="noopener" class={btnOutline}>
+            {c.sendVia(primaryChat.label)}
+          </a>
+        </div>
+        <a href={productsBase(lang)} class="mt-5 block text-center text-xs underline underline-offset-4 opacity-60 transition-opacity hover:opacity-100">
+          {c.continueBrowsing}
+        </a>
+      </aside>
+    </div>
+
+    <template id="cart-line-tpl">
+      <li class="flex gap-4 py-5 sm:gap-5" data-line>
+        <a data-href class="block w-24 shrink-0 sm:w-28">
+          <div class="lamp aspect-4/5 w-full">
+            <img data-off alt="" loading="lazy" decoding="async" />
+            <img data-on class="lamp-on" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+          </div>
+        </a>
+        <div class="flex min-w-0 flex-1 flex-col">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <a data-title class="text-sm leading-snug"></a>
+              <p data-sku class="mt-0.5 text-xs opacity-45"></p>
+            </div>
+            <p data-line-total class="text-sm tabular-nums"></p>
+          </div>
+          <p data-unit class="mt-1 text-xs opacity-55"></p>
+          <div class="mt-auto flex items-center justify-between gap-3 pt-4">
+            <div class="inline-flex items-center rounded-full border border-[var(--page-line)]" role="group" aria-label={c.quantity}>
+              <button type="button" data-action="dec" aria-label={c.decrease} class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M5 12h14" /></svg>
+              </button>
+              <span data-qty class="w-7 text-center text-sm tabular-nums"></span>
+              <button type="button" data-action="inc" aria-label={c.increase} class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              </button>
+            </div>
+            <button type="button" data-action="remove" class="cursor-pointer text-xs underline underline-offset-4 opacity-55 transition-opacity hover:opacity-100">{c.remove}</button>
+          </div>
+        </div>
+      </li>
+    </template>
+
+    <script type="application/json" id="cart-catalog" is:inline set:html={jsonForScript(catalog)} />
+  </div>
+</Layout>
+
+<script>
+  import { read, setQty, remove, clear } from "../scripts/cart";
+
+  type Entry = {
+    title: string; sku: string; price: number; priceLabel: string;
+    href: string; off: string; on: string;
+  };
+
+  const app = document.getElementById("cart-app")!;
+  const catalog: Record<string, Entry> = JSON.parse(document.getElementById("cart-catalog")!.textContent!);
+  const fmt = new Intl.NumberFormat(app.dataset.priceLocale, {
+    style: "currency",
+    currency: app.dataset.currency,
+    maximumFractionDigits: 0,
+  });
+
+  const el = <T extends HTMLElement>(sel: string, root: ParentNode = app) => root.querySelector<T>(sel)!;
+  const list = el("#cart-list");
+  const tpl = el<HTMLTemplateElement>("#cart-line-tpl");
+
+  function render() {
+    const lines = read().filter((l) => catalog[l.id]);
+    el("#cart-empty").hidden = lines.length > 0;
+    el("#cart-content").hidden = lines.length === 0;
+
+    list.replaceChildren();
+    let total = 0;
+    let items = 0;
+    const text: string[] = [];
+
+    for (const l of lines) {
+      const e = catalog[l.id];
+      const lineTotal = e.price * l.qty;
+      const node = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+      node.dataset.id = l.id;
+      el<HTMLAnchorElement>("[data-href]", node).href = e.href;
+      el<HTMLImageElement>("[data-off]", node).src = e.off;
+      el<HTMLImageElement>("[data-on]", node).src = e.on;
+      const title = el<HTMLAnchorElement>("[data-title]", node);
+      title.href = e.href;
+      title.textContent = e.title;
+      el("[data-sku]", node).textContent = e.sku;
+      el("[data-unit]", node).textContent = e.priceLabel;
+      el("[data-qty]", node).textContent = String(l.qty);
+      el("[data-line-total]", node).textContent = fmt.format(lineTotal);
+      list.append(node);
+
+      total += lineTotal;
+      items += l.qty;
+      text.push(`- ${l.qty} × ${e.title} (${e.sku}) — ${fmt.format(lineTotal)}`);
+    }
+
+    el("#cart-items").textContent = String(items);
+    el("#cart-total").textContent = fmt.format(total);
+
+    const message = [app.dataset.intro, "", ...text, "", `${app.dataset.totalLabel}: ${fmt.format(total)}`].join("\n");
+    el<HTMLAnchorElement>("#cart-chat").href = `${app.dataset.chatHref}?text=${encodeURIComponent(message)}`;
+  }
+
+  list.addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest<HTMLElement>("[data-action]");
+    const id = btn?.closest<HTMLElement>("[data-line]")?.dataset.id;
+    if (!btn || !id) return;
+    const action = btn.dataset.action;
+    const qty = read().find((l) => l.id === id)?.qty ?? 0;
+    if (action === "inc") setQty(id, qty + 1);
+    else if (action === "dec") setQty(id, qty - 1);
+    else remove(id);
+    list.querySelector<HTMLElement>(`[data-id="${id}"] [data-action="${action}"]`)?.focus();
+  });
+
+  el("#cart-clear").addEventListener("click", clear);
+  window.addEventListener("cart:change", render);
+  window.addEventListener("storage", render);
+  render();
+</script>

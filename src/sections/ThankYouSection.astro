@@ -1,0 +1,33 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { primaryChat } from "../../site.config.ts";
+import { allLocales, productsBase, thankYouHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const localeUrls = allLocales((l) => thankYouHref(l));
+---
+<Layout title={ui.thankYou.title} description={ui.thankYou.description} lang={lang} localeUrls={localeUrls} noindex>
+  <div class="mx-auto max-w-xl px-5 py-32 text-center md:px-8">
+    <h1 class="display text-4xl">{ui.thankYou.heading}</h1>
+    <p class="mt-5 text-sm leading-relaxed opacity-70">
+      {ui.thankYou.body(primaryChat.label)}
+    </p>
+    <a href={productsBase(lang)} class="mt-8 inline-block rounded-full border border-[var(--page-line)] px-6 py-3 text-sm">
+      {ui.thankYou.backToCollection}
+    </a>
+  </div>
+</Layout>
+
+<script>
+  import { clear } from "../scripts/cart";
+
+  try {
+    if (sessionStorage.getItem("lamp-cart-sent")) {
+      sessionStorage.removeItem("lamp-cart-sent");
+      clear();
+    }
+  } catch {}
+</script>

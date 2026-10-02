@@ -1,0 +1,137 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
+import Layout from "../layouts/Layout.astro";
+import JsonLd from "../components/JsonLd.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { productImage } from "../lib/images.ts";
+import { productSchema, breadcrumbSchema } from "../lib/schema.ts";
+import { primaryChat, site } from "../../site.config.ts";
+import { formatPriceFrom } from "../lib/price.ts";
+import { allLocales, homeHref, productsBase, productHref, contactHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props {
+  lang: Locale;
+  product: CollectionEntry<"products">;
+  products: CollectionEntry<"products">[];
+}
+const { lang, product, products } = Astro.props;
+const ui = t(lang);
+const d = product.data;
+
+const off = productImage(d.images.off);
+const on = productImage(d.images.on);
+
+const priceLabel = formatPriceFrom(d.price, d.priceFrom, lang);
+
+const related = products
+  .filter((p) => p.id !== product.id && p.data.category === d.category)
+  .slice(0, 4);
+
+const specs = [
+  [ui.product.sku, d.sku],
+  [ui.product.material, d.material[lang].join(", ")],
+  [ui.product.color, d.color?.[lang] ?? null],
+  [ui.product.dimensions, d.dimensions ? ui.product.dimensionsFormat(d.dimensions.w, d.dimensions.h) : null],
+  [ui.product.bulb, d.bulb?.[lang] ?? null],
+  [ui.product.lightOutput, d.lumens ? ui.product.lumens(d.lumens) : null],
+  [ui.product.colorTemperature, d.kelvin ? `${d.kelvin}K` : null],
+  [ui.product.production, d.availability === "MadeToOrder" ? ui.product.madeToOrder : ui.product.inStock],
+].filter(([, v]) => v) as [string, string][];
+
+const chatText = encodeURIComponent(ui.product.chatText(d.title[lang], d.sku));
+const localeUrls = allLocales((l) => productHref(l, product.id));
+---
+<Layout
+  title={d.title[lang]}
+  description={`${d.title[lang]} — ${d.material[lang].join(", ")}. ${priceLabel}.`}
+  type="product"
+  lang={lang}
+  localeUrls={localeUrls}
+>
+  <JsonLd schema={productSchema(product, lang)} />
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.common.allProducts, path: productsBase(lang) },
+    { name: d.title[lang], path: productHref(lang, product.id) },
+  ])} />
+
+  <div class="mx-auto max-w-[1400px] px-5 py-8 md:px-8">
+    <nav aria-label={ui.common.breadcrumbLabel} class="mb-6 text-xs opacity-50">
+      <a href={homeHref(lang)}>{ui.common.home}</a> <span class="mx-1.5">/</span>
+      <a href={productsBase(lang)}>{ui.common.allProducts}</a> <span class="mx-1.5">/</span>
+      <span>{d.title[lang]}</span>
+    </nav>
+
+    <div class="grid gap-10 md:grid-cols-2 md:gap-14">
+      <!-- Görsel: aynı ışık anahtarına bağlı -->
+      <div class="lamp aspect-4/5 w-full">
+        <Image
+          src={off}
+          alt={d.images.alt[lang]}
+          widths={[600, 900, 1200]}
+          sizes="(min-width:768px) 48vw, 92vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <Image class="lamp-on" src={on} alt="" aria-hidden="true"
+          widths={[600, 900, 1200]} sizes="(min-width:768px) 48vw, 92vw" loading="eager" />
+      </div>
+
+      <div>
+        <h1 class="display text-4xl leading-tight">{d.title[lang]}</h1>
+        <p class="mt-3 text-lg opacity-75">{priceLabel}</p>
+
+        <div class="prose-sm mt-6 space-y-4 text-sm leading-relaxed opacity-75 [&_p]:mb-4">
+          {d.description[lang].split("\n\n").map((para) => <p>{para}</p>)}
+        </div>
+
+        <!-- Teknik tablo: Google ve AI'ların en çok okuduğu blok -->
+        <dl class="mt-8 divide-y divide-[var(--page-line)] border-y border-[var(--page-line)] text-sm">
+          {specs.map(([k, v]) => (
+            <div class="flex justify-between gap-6 py-2.5">
+              <dt class="opacity-50">{k}</dt>
+              <dd class="text-right">{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          {site.commerceMode === "shop" && (
+            <button type="button" data-add-to-cart={product.id}
+              class="inline-flex min-w-[10.5rem] cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--page-fg)] px-6 py-3 text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                <path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" />
+                <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+              </svg>
+              <span data-label-default>{ui.product.addToCart}</span>
+              <span data-label-added hidden aria-live="polite">{ui.product.added}</span>
+            </button>
+          )}
+          <a href={`${primaryChat.href}?text=${chatText}`} target="_blank" rel="noopener"
+            class={site.commerceMode === "shop"
+              ? "rounded-full border border-[var(--page-line)] px-6 py-3 text-sm transition-colors duration-300 hover:border-[var(--color-glow)]"
+              : "rounded-full bg-[var(--page-fg)] px-6 py-3 text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85"}>
+            {ui.product.askOn(primaryChat.label)}
+          </a>
+          <a href={contactHref(lang, `urun=${product.id}`)}
+            class="rounded-full border border-[var(--page-line)] px-6 py-3 text-sm transition-colors duration-300 hover:border-[var(--color-glow)]">
+            {ui.product.quoteForm}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {related.length > 0 && (
+      <section class="mt-20">
+        <h2 class="mb-6 border-b border-[var(--page-line)] pb-3 display text-2xl">
+          {ui.product.related}
+        </h2>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
+          {related.map((p, i) => <ProductCard product={p} lang={lang} index={i} />)}
+        </div>
+      </section>
+    )}
+  </div>
+</Layout>

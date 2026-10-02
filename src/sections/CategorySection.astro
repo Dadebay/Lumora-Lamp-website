@@ -1,0 +1,74 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { breadcrumbSchema, itemListSchema } from "../lib/schema.ts";
+import { categories, type CategoryKey } from "../lib/categories.ts";
+import { allLocales, homeHref, productsBase, categoryHref, contactHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props {
+  lang: Locale;
+  categoryKey: CategoryKey;
+  products: CollectionEntry<"products">[];
+}
+const { lang, categoryKey, products } = Astro.props;
+const ui = t(lang);
+const cats = categories[lang];
+const c = cats[categoryKey];
+const path = categoryHref(lang, categoryKey);
+const localeUrls = allLocales((l) => categoryHref(l, categoryKey));
+
+const others = Object.entries(cats).filter(([k]) => k !== categoryKey);
+---
+<Layout title={c.title} description={c.description} lang={lang} localeUrls={localeUrls}>
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.common.allProducts, path: productsBase(lang) },
+    { name: c.title, path },
+  ])} />
+  {products.length > 0 && <JsonLd schema={itemListSchema(products, c.title, lang)} />}
+
+  <div class="mx-auto max-w-[1400px] px-5 py-10 md:px-8">
+    <nav aria-label={ui.common.breadcrumbLabel} class="mb-6 text-xs opacity-50">
+      <a href={homeHref(lang)}>{ui.common.home}</a> <span class="mx-1.5">/</span>
+      <a href={productsBase(lang)}>{ui.common.allProducts}</a> <span class="mx-1.5">/</span>
+      <span>{c.label}</span>
+    </nav>
+
+    <div class="border-b border-[var(--page-line)] pb-6">
+      <h1 class="display text-4xl">
+        {c.title}<sup class="ml-1 align-super text-[11px] opacity-50">{products.length}</sup>
+      </h1>
+      <!-- Kategoriye özel giriş metni: Google için benzersiz içerik,
+           AI asistanlar için alıntılanabilir pratik bilgi. -->
+      <p class="mt-4 max-w-2xl text-sm leading-relaxed opacity-70">{c.intro}</p>
+    </div>
+
+    {products.length > 0 ? (
+      <div class="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+        {products.map((p, i) => <ProductCard product={p} lang={lang} index={i} priority={i < 4} />)}
+      </div>
+    ) : (
+      <p class="mt-10 text-sm opacity-60">
+        {ui.category.emptyBefore}
+        <a href={contactHref(lang)} class="underline underline-offset-4">{ui.category.emptyLink}</a>{ui.category.emptyAfter}
+      </p>
+    )}
+
+    <nav aria-label={ui.category.otherCategories} class="mt-16 border-t border-[var(--page-line)] pt-6">
+      <h2 class="mb-3 text-[11px] uppercase tracking-[0.18em] opacity-50">{ui.category.otherCategories}</h2>
+      <ul class="flex flex-wrap gap-2">
+        {others.map(([k, o]) => (
+          <li>
+            <a href={categoryHref(lang, k)}
+              class="inline-block rounded-full border border-[var(--page-line)] px-4 py-1.5 text-sm opacity-70 transition duration-200 hover:opacity-100">
+              {o.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</Layout>

@@ -1,0 +1,125 @@
+---
+import { site } from "../../site.config.ts";
+import LightToggle from "./LightToggle.astro";
+import { locales, type Locale, homeHref, aboutHref, faqHref, contactHref, productsBase, cartHref } from "../i18n/config.ts";
+import { t, languageNames } from "../i18n/ui.ts";
+
+interface Props {
+  lang: Locale;
+  /** Aynı sayfanın diğer dillerdeki karşılığı — dil değiştiricide kullanılır. */
+  localeUrls?: Partial<Record<Locale, string>>;
+}
+const { lang, localeUrls } = Astro.props;
+const ui = t(lang);
+
+const nav = [
+  { label: ui.nav.collection, href: productsBase(lang) },
+  { label: ui.nav.workshop, href: aboutHref(lang) },
+  { label: ui.nav.faq, href: faqHref(lang) },
+];
+const mobileNav = [...nav, { label: ui.nav.contact, href: contactHref(lang) }];
+const path = Astro.url.pathname;
+---
+<header class="sticky top-0 z-40 px-4 pt-4 pb-2 md:px-6">
+  <div
+    class="mx-auto flex max-w-[1400px] items-center justify-between gap-4 rounded-full border border-[var(--page-line)] bg-[color-mix(in_srgb,var(--page-bg)_82%,transparent)] px-5 py-2.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.25)] backdrop-blur-md transition-colors duration-700 md:px-6"
+  >
+    <a href={homeHref(lang)} class="display shrink-0 text-xl tracking-tight">
+      {site.name}
+    </a>
+
+    <nav aria-label={ui.nav.mainMenu} class="hidden md:block">
+      <ul class="flex items-center gap-7 text-sm">
+        {nav.map((n) => (
+          <li>
+            <a
+              href={n.href}
+              aria-current={path.startsWith(n.href) ? "page" : undefined}
+              class="opacity-70 transition-opacity duration-300 hover:opacity-100 aria-[current=page]:opacity-100"
+            >{n.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <LightToggle lang={lang} />
+
+      <details class="lang-menu group relative">
+        <summary
+          aria-label={ui.common.changeLanguage}
+          class="flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-full border border-[var(--page-line)] bg-[color-mix(in_srgb,var(--page-fg)_5%,transparent)] px-3.5 text-xs uppercase tracking-wide opacity-70 transition-opacity duration-300 hover:opacity-100"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-[16px] w-[16px]" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18" />
+            <path d="M12 3c2.5 2.5 2.5 15.5 0 18" />
+            <path d="M12 3c-2.5 2.5-2.5 15.5 0 18" />
+          </svg>
+          {lang}
+        </summary>
+        <div
+          class="absolute right-0 top-[calc(100%+10px)] w-32 rounded-2xl border border-[var(--page-line)] bg-[var(--page-bg)] p-1.5 text-sm shadow-[0_8px_30px_-8px_rgba(0,0,0,0.3)]"
+        >
+          {locales.map((l) => (
+            <a
+              href={localeUrls?.[l] ?? homeHref(l)}
+              aria-current={l === lang ? "page" : undefined}
+              class="block rounded-xl px-3 py-2 opacity-70 transition-opacity duration-200 hover:opacity-100 hover:bg-[color-mix(in_srgb,var(--page-fg)_6%,transparent)] aria-[current=page]:opacity-100 aria-[current=page]:bg-[color-mix(in_srgb,var(--page-fg)_8%,transparent)]"
+            >{languageNames[l]}</a>
+          ))}
+        </div>
+      </details>
+
+      {site.commerceMode === "shop" && (
+        <a
+          href={cartHref(lang)}
+          data-cart-link
+          data-label={ui.common.cart}
+          aria-label={ui.common.cart}
+          title={ui.common.cart}
+          class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--page-line)] bg-[color-mix(in_srgb,var(--page-fg)_5%,transparent)] opacity-70 transition-opacity duration-300 hover:opacity-100"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+            <path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" />
+            <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+          </svg>
+          <span
+            data-cart-badge
+            hidden
+            class="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-glow)] px-1 text-[10px] font-medium leading-none text-[#1a1815]"
+          >0</span>
+        </a>
+      )}
+
+      <a
+        href={contactHref(lang)}
+        class="hidden rounded-full bg-[var(--page-fg)] px-5 py-2.5 text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85 sm:inline-block"
+      >{ui.home.requestQuote}</a>
+    </div>
+  </div>
+
+  <nav aria-label={ui.nav.mobileMenu} class="md:hidden">
+    <ul class="mx-auto mt-2 flex max-w-[1400px] overflow-x-auto px-5 gap-6 text-sm [scrollbar-width:none]">
+      {mobileNav.map((n) => (
+        <li class="shrink-0"><a href={n.href} class="opacity-70">{n.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .lang-menu summary::-webkit-details-marker { display: none; }
+  .lang-menu summary { list-style: none; }
+  .lang-menu div { display: none; }
+  .lang-menu[open] div { display: block; }
+</style>
+
+<script is:inline>
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll(".lang-menu[open]").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      if (!el.contains(e.target)) el.removeAttribute("open");
+    });
+  });
+</script>

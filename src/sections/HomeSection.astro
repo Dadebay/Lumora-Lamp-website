@@ -1,0 +1,77 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { faq } from "../lib/faq.ts";
+import { site } from "../../site.config.ts";
+import { allLocales, homeHref, productsBase, faqHref, contactHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+
+const all = (await getCollection("products")).sort((a, b) => a.data.order - b.data.order);
+const featured = all.filter((p) => p.data.featured).slice(0, 4);
+const rest = all.filter((p) => !p.data.featured);
+const homeFaq = faq[lang];
+
+const localeUrls = allLocales((l) => homeHref(l));
+---
+<Layout title={site.name} description={ui.meta.description} lang={lang} localeUrls={localeUrls}>
+  <!-- HERO -->
+  <section class="mx-auto max-w-[1400px] px-5 pt-16 pb-14 md:px-8 md:pt-24">
+    <h1 class="reveal max-w-4xl display text-[clamp(2.75rem,6.5vw,5.5rem)] leading-[1.02]">
+      {ui.home.heroLine1}<br />{ui.home.heroLine2}
+    </h1>
+    <p class="reveal mt-6 max-w-xl text-base leading-relaxed opacity-70" style="--delay:120ms">
+      {ui.meta.description} {ui.home.heroSub}
+    </p>
+    <div class="reveal mt-8 flex flex-wrap gap-3" style="--delay:220ms">
+      <a href={productsBase(lang)} class="rounded-full bg-[var(--page-fg)] px-6 py-3 text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85">
+        {ui.home.viewCollection}
+      </a>
+      <a href={contactHref(lang)} class="rounded-full border border-[var(--page-line)] px-6 py-3 text-sm transition-colors duration-300 hover:border-[var(--color-glow)]">
+        {ui.home.requestQuote}
+      </a>
+    </div>
+  </section>
+
+  <!-- ÖNE ÇIKANLAR -->
+  <section class="mx-auto max-w-[1400px] px-5 pb-20 md:px-8">
+    <div class="mb-6 flex items-baseline justify-between border-b border-[var(--page-line)] pb-3">
+      <h2 class="display text-2xl">
+        {ui.home.featured}<sup class="ml-0.5 text-[11px] align-super opacity-50">{featured.length}</sup>
+      </h2>
+      <a href={productsBase(lang)} class="text-sm opacity-60 hover:opacity-100">{ui.common.allArrow}</a>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+      {featured.map((p, i) => <ProductCard product={p} lang={lang} index={i} priority={i < 4} />)}
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+      {rest.slice(0, 8).map((p, i) => <ProductCard product={p} lang={lang} index={i} />)}
+    </div>
+  </section>
+
+  <!-- SIK SORULANLAR — ana sayfada tek satırlık özetler, tamamı /sss'te -->
+  <section class="border-t border-[var(--page-line)]">
+    <div class="mx-auto max-w-[1400px] px-5 py-16 md:px-8">
+      <div class="flex items-baseline justify-between border-b border-[var(--page-line)] pb-3">
+        <h2 class="display text-2xl">{ui.home.faqHeading}</h2>
+        <a href={faqHref(lang)} class="text-sm opacity-60 transition-opacity hover:opacity-100">{ui.common.allArrow}</a>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-2.5">
+        {homeFaq.map((item) => (
+          <a
+            href={faqHref(lang)}
+            class="rounded-full border border-[var(--page-line)] px-4 py-2 text-sm opacity-70 transition duration-200 hover:opacity-100 hover:border-[var(--color-glow)]"
+          >{item.q}</a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+</Layout>

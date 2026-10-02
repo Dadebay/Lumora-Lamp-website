@@ -1,0 +1,55 @@
+---
+/**
+ * Her sayfada bir kez yüklenir: header'daki sayaç rozetini günceller ve
+ * `data-add-to-cart` taşıyan tüm butonları (kart + ürün sayfası) dinler.
+ */
+---
+<script>
+  import { add, count } from "../scripts/cart";
+
+  const syncBadges = () => {
+    const n = count();
+    document.querySelectorAll<HTMLElement>("[data-cart-badge]").forEach((el) => {
+      el.textContent = String(n);
+      el.hidden = n === 0;
+    });
+    document.querySelectorAll<HTMLElement>("[data-cart-link]").forEach((el) => {
+      const label = el.dataset.label ?? "";
+      el.setAttribute("aria-label", n > 0 ? `${label} (${n})` : label);
+    });
+  };
+
+  const bump = () => {
+    document.querySelectorAll<HTMLElement>("[data-cart-badge]").forEach((el) => {
+      el.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }],
+        { duration: 380, easing: "ease-out" },
+      );
+    });
+  };
+
+  const timers = new WeakMap<HTMLElement, number>();
+  const flash = (btn: HTMLElement) => {
+    const toggle = (added: boolean) => {
+      btn.dataset.added = String(added);
+      btn.querySelectorAll<HTMLElement>("[data-label-default]").forEach((el) => (el.hidden = added));
+      btn.querySelectorAll<HTMLElement>("[data-label-added]").forEach((el) => (el.hidden = !added));
+    };
+    toggle(true);
+    window.clearTimeout(timers.get(btn));
+    timers.set(btn, window.setTimeout(() => toggle(false), 1600));
+  };
+
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest<HTMLElement>("[data-add-to-cart]");
+    if (!btn) return;
+    e.preventDefault();
+    add(btn.dataset.addToCart!);
+    flash(btn);
+    bump();
+  });
+
+  window.addEventListener("cart:change", syncBadges);
+  window.addEventListener("storage", syncBadges);
+  syncBadges();
+</script>

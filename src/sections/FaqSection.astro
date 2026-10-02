@@ -1,0 +1,45 @@
+---
+import Layout from "../layouts/Layout.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { faqSchema, breadcrumbSchema } from "../lib/schema.ts";
+import { faq } from "../lib/faq.ts";
+import { allLocales, homeHref, faqHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const items = faq[lang];
+const localeUrls = allLocales((l) => faqHref(l));
+---
+<Layout
+  title={ui.faqPage.title}
+  description={ui.faqPage.description}
+  lang={lang}
+  localeUrls={localeUrls}
+>
+  <JsonLd schema={faqSchema(items)} />
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.faqPage.title, path: faqHref(lang) },
+  ])} />
+
+  <div class="mx-auto max-w-3xl px-5 py-16 md:px-8">
+    <h1 class="display text-4xl">{ui.faqPage.title}</h1>
+    <p class="mt-4 text-sm leading-relaxed opacity-65">
+      {ui.faqPage.intro}
+    </p>
+
+    <div class="mt-12 divide-y divide-[var(--page-line)] border-t border-[var(--page-line)]">
+      {items.map((item) => (
+        <details class="group py-5" name="faq">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-base">
+            <h2 class="font-normal">{item.q}</h2>
+            <span class="shrink-0 text-xl opacity-40 transition-transform duration-300 group-open:rotate-45">+</span>
+          </summary>
+          <p class="mt-3 text-sm leading-relaxed opacity-70">{item.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</Layout>

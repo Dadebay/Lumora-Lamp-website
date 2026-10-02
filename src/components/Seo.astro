@@ -1,0 +1,62 @@
+---
+import { site } from "../../site.config.ts";
+import { locales, defaultLocale, ogLocale, homeHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article" | "product";
+  noindex?: boolean;
+  lang: Locale;
+  /** Aynı sayfanın diğer dillerdeki karşılığı — hreflang alternate için. */
+  localeUrls?: Partial<Record<Locale, string>>;
+}
+
+const {
+  title,
+  description = t(Astro.props.lang).meta.description,
+  image = "/images/og.jpg",
+  type = "website",
+  noindex = false,
+  lang,
+  localeUrls,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const ogImage = new URL(image, site.url).href;
+const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} | ${site.name}`;
+
+const alternates = locales.map((l) => ({
+  hreflang: l,
+  href: new URL(localeUrls?.[l] ?? homeHref(l), site.url).href,
+}));
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+{!noindex && alternates.map((a) => (
+  <link rel="alternate" hreflang={a.hreflang} href={a.href} />
+))}
+{!noindex && (
+  <link rel="alternate" hreflang="x-default" href={new URL(homeHref(defaultLocale), site.url).href} />
+)}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:locale" content={ogLocale[lang]} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<meta name="geo.region" content={`${site.address.country}-34`} />
+<meta name="geo.placename" content={site.address.city} />

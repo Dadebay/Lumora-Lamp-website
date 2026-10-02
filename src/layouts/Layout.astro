@@ -1,0 +1,85 @@
+---
+import "../styles/global.css";
+import { primaryChat, site } from "../../site.config.ts";
+import Seo from "../components/Seo.astro";
+import JsonLd from "../components/JsonLd.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import CartRuntime from "../components/CartRuntime.astro";
+import { localBusinessSchema } from "../lib/schema.ts";
+import type { Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article" | "product";
+  noindex?: boolean;
+  lang: Locale;
+  /** Aynı sayfanın diğer dillerdeki karşılığı — hreflang + dil değiştirici için. */
+  localeUrls?: Partial<Record<Locale, string>>;
+}
+const props = Astro.props;
+const { lang } = props;
+const ui = t(lang);
+---
+<!doctype html>
+<html lang={lang} data-light="off">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Gilroy yedeği. public/fonts/ içine Gilroy .woff2 dosyaları konduktan
+      sonra bu iki preconnect + link satırı SİLİNMELİ: bir DNS araması ve bir
+      render-blocking istek kalkar, LCP düşer. (public/fonts/README.md)
+    -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+    />
+
+    <Seo {...props} />
+    <JsonLd schema={localBusinessSchema(lang)} />
+
+    <!-- Işık tercihini boyamadan ÖNCE uygula: yanıp sönme (FOUC) olmasın -->
+    <script is:inline>
+      try {
+        const v = localStorage.getItem("lamp-light");
+        if (v === "on") document.documentElement.dataset.light = "on";
+      } catch {}
+    </script>
+  </head>
+
+  <body class="min-h-dvh flex flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:m-3 focus:rounded focus:bg-[var(--page-fg)] focus:px-4 focus:py-2 focus:text-[var(--page-bg)]"
+      >{ui.common.skipToContent}</a
+    >
+
+    <Header lang={lang} localeUrls={props.localeUrls} />
+    <main id="main" class="flex-1"><slot /></main>
+    <Footer lang={lang} />
+    {site.commerceMode === "shop" && <CartRuntime />}
+
+    <!-- Her sayfada tek dokunuşla sohbet: WhatsApp varsa o, yoksa Telegram -->
+    <a
+      href={primaryChat.href}
+      target="_blank"
+      rel="noopener"
+      aria-label={ui.common.chatWith(primaryChat.label)}
+      class="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-[var(--page-fg)] px-5 py-3 text-sm text-[var(--page-bg)] shadow-lg transition-[background-color,color,transform] duration-300 hover:scale-105"
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4" aria-hidden="true">
+        <path d="M21 4 3 11l5 2 2 5 3-4 5 4 3-14Z" />
+      </svg>
+      {primaryChat.label}
+    </a>
+  </body>
+</html>

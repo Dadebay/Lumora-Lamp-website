@@ -1,0 +1,16 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import ProductDetailSection from "../../sections/ProductDetailSection.astro";
+
+export const getStaticPaths = (async () => {
+  const products = await getCollection("products");
+  return products.map((product) => ({
+    params: { slug: product.id },
+    props: { product, products },
+  }));
+}) satisfies GetStaticPaths;
+
+const { product, products } = Astro.props;
+---
+<ProductDetailSection lang="en" product={product} products={products} />

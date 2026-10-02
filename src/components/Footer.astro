@@ -1,0 +1,92 @@
+---
+import { site, primaryChat } from "../../site.config.ts";
+import { categories } from "../lib/categories.ts";
+import type { Locale } from "../i18n/config.ts";
+import { productsBase, categoryHref } from "../i18n/config.ts";
+import { regionName } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const cats = categories[lang];
+
+const a = site.address;
+const b = site.builtBy;
+const cityLine = [a.city, regionName(lang, a.country)].filter(Boolean).join(", ");
+---
+<footer class="border-t border-[var(--page-line)] transition-colors duration-700">
+  <div class="mx-auto grid max-w-[1400px] gap-10 px-5 py-14 md:grid-cols-5 md:px-8">
+    <div class="md:col-span-2">
+      <p class="display text-2xl">{site.name}</p>
+      <p class="mt-3 max-w-sm text-sm leading-relaxed opacity-65">{ui.meta.description}</p>
+    </div>
+
+    <!-- Kategori sayfalarına site geneli iç link: her sayfadan erişilebilir
+         olması Google'ın bu sayfaları düzenli taramasını sağlar. -->
+    <div class="text-sm">
+      <h2 class="mb-3 text-[11px] uppercase tracking-[0.18em] opacity-50">{ui.footer.collection}</h2>
+      <ul class="space-y-1.5 opacity-75">
+        {Object.entries(cats).map(([k, c]) => (
+          <li><a href={categoryHref(lang, k)}>{c.label}</a></li>
+        ))}
+        <li class="pt-1.5"><a href={productsBase(lang)}>{ui.common.allArrow}</a></li>
+      </ul>
+    </div>
+
+    <div class="text-sm">
+      <h2 class="mb-3 text-[11px] uppercase tracking-[0.18em] opacity-50">{ui.footer.workshop}</h2>
+      <address class="not-italic leading-relaxed opacity-75">
+        {a.street && <>{a.street}<br /></>}
+        {a.postalCode && <>{a.postalCode} {a.district}<br /></>}
+        {cityLine}
+      </address>
+    </div>
+
+    <div class="text-sm">
+      <h2 class="mb-3 text-[11px] uppercase tracking-[0.18em] opacity-50">{ui.footer.contact}</h2>
+      <ul class="space-y-1.5 opacity-75">
+        {site.phone && (
+          <li><a href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</a></li>
+        )}
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li><a href={primaryChat.href} target="_blank" rel="noopener">{primaryChat.label}</a></li>
+      </ul>
+      {site.social.instagram && (
+        <ul class="mt-4 flex gap-4 opacity-75">
+          <li><a href={site.social.instagram} target="_blank" rel="noopener me">Instagram</a></li>
+        </ul>
+      )}
+    </div>
+  </div>
+
+  <!--
+    Demo künyesi. Bu siteyi lamba firmalarına örnek olarak gönderdiğinde
+    seni bulabilecekleri tek yer burası — asıl satış kanalı.
+    Gerçek müşteriye teslim ederken site.config.ts → isDemo: false yap.
+  -->
+  {site.isDemo && (
+    <div class="border-t border-[var(--page-line)]">
+      <div class="mx-auto flex max-w-[1400px] flex-col gap-3 px-5 py-6 text-sm md:flex-row md:items-center md:justify-between md:px-8">
+        <p class="opacity-70">
+          <span class="rounded-full border border-[var(--page-line)] px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] opacity-70">{ui.footer.demoBadge}</span>
+          <span class="ml-2">
+            {ui.footer.demoIntro} {ui.footer.demoPrefix}
+            <strong class="font-medium">{b.name}</strong> · {b.role} · {b.location}
+          </span>
+        </p>
+        <ul class="flex flex-wrap gap-4 opacity-70">
+          <li><a href={`mailto:${b.email}`}>{ui.common.email}</a></li>
+          <li><a href={b.telegram} target="_blank" rel="noopener">Telegram</a></li>
+          <li><a href={b.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href={b.github} target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href={b.googlePlay} target="_blank" rel="noopener">Google Play</a></li>
+        </ul>
+      </div>
+    </div>
+  )}
+
+  <div class="border-t border-[var(--page-line)] px-5 py-5 text-center text-xs opacity-45 md:px-8">
+    © {new Date().getFullYear()} {site.legalName}. {ui.footer.rightsReserved}
+  </div>
+</footer>

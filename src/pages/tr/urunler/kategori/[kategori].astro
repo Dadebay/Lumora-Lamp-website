@@ -1,0 +1,22 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import CategorySection from "../../../../sections/CategorySection.astro";
+import { categories, type CategoryKey } from "../../../../lib/categories.ts";
+
+export const getStaticPaths = (async () => {
+  const all = await getCollection("products");
+  return Object.keys(categories.en).map((key) => ({
+    params: { kategori: key },
+    props: {
+      key: key as CategoryKey,
+      products: all
+        .filter((p) => p.data.category === key)
+        .sort((a, b) => a.data.order - b.data.order),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { key, products } = Astro.props;
+---
+<CategorySection lang="tr" categoryKey={key} products={products} />

@@ -1,0 +1,136 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { breadcrumbSchema, itemListSchema } from "../lib/schema.ts";
+import { categories } from "../lib/categories.ts";
+import { allLocales, homeHref, productsBase, categoryHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+import { site } from "../../site.config.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const cats = categories[lang];
+
+const products = (await getCollection("products")).sort((a, b) => a.data.order - b.data.order);
+
+const used = [...new Set(products.map((p) => p.data.category))];
+const localeUrls = allLocales((l) => productsBase(l));
+---
+<Layout
+  title={ui.products.title}
+  description={ui.products.description(site.address.city)}
+  lang={lang}
+  localeUrls={localeUrls}
+>
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.common.allProducts, path: productsBase(lang) },
+  ])} />
+  <JsonLd schema={itemListSchema(products, ui.common.allProducts, lang)} />
+
+  <div class="mx-auto max-w-[1400px] px-5 py-10 md:px-8">
+    <!-- Başlık çubuğu -->
+    <div class="flex flex-wrap items-baseline justify-between gap-4 border-b border-[var(--page-line)] pb-3">
+      <h1 class="display text-3xl">
+        {ui.products.title}<sup
+          id="count"
+          class="ml-0.5 align-super text-[11px] opacity-50">{products.length}</sup
+        >
+      </h1>
+
+      <div class="flex items-center gap-2 text-sm" role="group" aria-label={ui.products.viewDensityLabel}>
+        <span class="opacity-50">{ui.products.viewLabel}</span>
+        {(["S", "M", "L"] as const).map((s) => (
+          <button
+            type="button"
+            data-view={s}
+            class="view-btn px-1 opacity-50 transition-opacity duration-200 hover:opacity-100 aria-[pressed=true]:opacity-100 aria-[pressed=true]:underline aria-[pressed=true]:underline-offset-4"
+            aria-pressed={s === "M"}
+          >{s}</button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Kategori filtresi (istemci tarafında; bütün ürünler HTML'de kalır → SEO kaybı yok) -->
+    <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label={ui.products.categoryFilterLabel}>
+      <button type="button" data-cat="all" aria-pressed="true"
+        class="cat-btn rounded-full border border-[var(--page-line)] px-4 py-1.5 text-sm opacity-60 transition duration-200 hover:opacity-100 aria-[pressed=true]:bg-[var(--page-fg)] aria-[pressed=true]:text-[var(--page-bg)] aria-[pressed=true]:opacity-100"
+      >{ui.products.all}</button>
+      {used.map((c) => (
+        <button type="button" data-cat={c} aria-pressed="false"
+          class="cat-btn rounded-full border border-[var(--page-line)] px-4 py-1.5 text-sm opacity-60 transition duration-200 hover:opacity-100 aria-[pressed=true]:bg-[var(--page-fg)] aria-[pressed=true]:text-[var(--page-bg)] aria-[pressed=true]:opacity-100"
+        >{cats[c].label}</button>
+      ))}
+    </div>
+
+    <!-- Kategori sayfalarına gerçek linkler: filtre butonları JS olduğu için
+         tarayıcı/bot iç link göremez; SEO bağlantısını bunlar kurar. -->
+    <nav aria-label={ui.common.breadcrumbLabel} class="mt-3 text-xs opacity-45">
+      <span>{ui.products.categoryPagesLabel}</span>
+      {used.map((c, i) => (
+        <>
+          {i > 0 && <span class="mx-1">·</span>}
+          <a href={categoryHref(lang, c)} class="underline underline-offset-2 hover:opacity-100">
+            {cats[c].title}
+          </a>
+        </>
+      ))}
+    </nav>
+
+    <div
+      id="grid"
+      data-view="M"
+      class="mt-8 grid gap-x-4 gap-y-10 grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+    >
+      {products.map((p, i) => (
+        <div data-cat={p.data.category}>
+          <ProductCard product={p} lang={lang} index={i} priority={i < 4} />
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  #grid[data-view="S"] { --cols: 6; }
+  #grid[data-view="L"] { --cols: 3; }
+  @media (min-width: 1280px) {
+    #grid[data-view="S"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    #grid[data-view="L"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+
+<script>
+  const grid = document.getElementById("grid")!;
+  const count = document.getElementById("count")!;
+  const items = [...grid.children] as HTMLElement[];
+
+  document.querySelectorAll<HTMLButtonElement>(".cat-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const cat = btn.dataset.cat!;
+      document
+        .querySelectorAll<HTMLButtonElement>(".cat-btn")
+        .forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+
+      let visible = 0;
+      for (const el of items) {
+        const show = cat === "all" || el.dataset.cat === cat;
+        el.hidden = !show;
+        if (show) visible++;
+      }
+      count.textContent = String(visible);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>(".view-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll<HTMLButtonElement>(".view-btn")
+        .forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      grid.dataset.view = btn.dataset.view!;
+    });
+  });
+</script>

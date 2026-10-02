@@ -1,0 +1,49 @@
+---
+import Layout from "../layouts/Layout.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { breadcrumbSchema } from "../lib/schema.ts";
+import { site } from "../../site.config.ts";
+import { allLocales, homeHref, aboutHref, contactHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const city = site.address.city;
+const localeUrls = allLocales((l) => aboutHref(l));
+---
+<Layout
+  title={ui.about.title}
+  description={ui.about.description}
+  lang={lang}
+  localeUrls={localeUrls}
+>
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.about.title, path: aboutHref(lang) },
+  ])} />
+
+  <div class="mx-auto max-w-3xl px-5 py-16 md:px-8">
+    <h1 class="display text-4xl">{ui.about.title}</h1>
+    <p class="mt-6 text-base leading-relaxed opacity-75">
+      {ui.about.intro(site.name, city)}
+    </p>
+
+    <h2 class="mt-14 display text-2xl">{ui.about.howWeWork}</h2>
+    <ol class="mt-6 divide-y divide-[var(--page-line)] border-y border-[var(--page-line)]">
+      {ui.about.steps.map((s) => (
+        <li class="flex gap-6 py-6">
+          <span class="w-8 shrink-0 text-sm tabular-nums opacity-40">{s.n}</span>
+          <div>
+            <h3 class="text-base">{s.t}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed opacity-65">{s.d(city)}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <a href={contactHref(lang)} class="mt-10 inline-block rounded-full bg-[var(--page-fg)] px-6 py-3 text-sm text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85">
+      {ui.about.cta}
+    </a>
+  </div>
+</Layout>

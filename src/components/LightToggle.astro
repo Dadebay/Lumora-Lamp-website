@@ -1,0 +1,58 @@
+---
+import type { Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+/**
+ * Tüm sitenin ışık anahtarı.
+ * Durum <html data-light> üzerinde tutulur; CSS geri kalanını hallediyor,
+ * bu yüzden 98 ürün kartı için tek bir DOM yazması yeterli.
+ */
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+---
+<button
+  type="button"
+  id="light-toggle"
+  role="switch"
+  aria-checked="false"
+  aria-label={t(lang).common.light}
+  title={t(lang).common.light}
+  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--page-line)] bg-[color-mix(in_srgb,var(--page-fg)_5%,transparent)] text-[var(--page-fg)] opacity-70 transition-[opacity,background-color,border-color,color] duration-500 hover:opacity-100 cursor-pointer"
+>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true">
+    <path d="M9 18h6" />
+    <path d="M10 21h4" />
+    <path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.8 1 .9 1.7l.1.5h5.2l.1-.5c.1-.7.4-1.3.9-1.7A6 6 0 0 0 12 3Z" />
+  </svg>
+</button>
+
+<style>
+  #light-toggle[aria-checked="true"] {
+    color: var(--color-glow);
+    opacity: 1;
+    background-color: color-mix(in srgb, var(--color-glow) 16%, transparent);
+    border-color: color-mix(in srgb, var(--color-glow) 45%, transparent);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-glow) 60%, transparent));
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const btn = document.getElementById("light-toggle");
+    if (!btn) return;
+    const root = document.documentElement;
+
+    const sync = () => {
+      btn.setAttribute("aria-checked", String(root.dataset.light === "on"));
+    };
+
+    btn.addEventListener("click", () => {
+      const next = root.dataset.light === "on" ? "off" : "on";
+      root.dataset.light = next;
+      try { localStorage.setItem("lamp-light", next); } catch {}
+      sync();
+    });
+
+    sync();
+  })();
+</script>

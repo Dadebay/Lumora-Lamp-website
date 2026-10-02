@@ -1,0 +1,258 @@
+---
+import Layout from "../layouts/Layout.astro";
+import JsonLd from "../components/JsonLd.astro";
+import { breadcrumbSchema } from "../lib/schema.ts";
+import { buildCatalog, jsonForScript } from "../lib/cartData.ts";
+import { site, primaryChat } from "../../site.config.ts";
+import { allLocales, homeHref, contactHref, thankYouHref, type Locale } from "../i18n/config.ts";
+import { t } from "../i18n/ui.ts";
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const ui = t(lang);
+const b = site.builtBy;
+const localeUrls = allLocales((l) => contactHref(l));
+const catalog = await buildCatalog(lang);
+---
+<Layout
+  title={ui.contact.title}
+  description={ui.contact.description(site.name, primaryChat.label)}
+  lang={lang}
+  localeUrls={localeUrls}
+>
+  <JsonLd schema={breadcrumbSchema([
+    { name: ui.common.home, path: homeHref(lang) },
+    { name: ui.contact.title, path: contactHref(lang) },
+  ])} />
+
+  <div class="mx-auto grid max-w-[1100px] gap-14 px-5 py-16 md:grid-cols-2 md:px-8">
+    <div>
+      <h1 class="display text-4xl">{ui.contact.title}</h1>
+      <p class="mt-5 text-sm leading-relaxed opacity-70">
+        {ui.contact.intro}
+      </p>
+
+      <dl class="mt-10 space-y-5 text-sm">
+        <div>
+          <dt class="text-[11px] uppercase tracking-[0.18em] opacity-45">{ui.common.email}</dt>
+          <dd class="mt-1.5"><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+        </div>
+        {site.phone && (
+          <div>
+            <dt class="text-[11px] uppercase tracking-[0.18em] opacity-45">{ui.contact.phone}</dt>
+            <dd class="mt-1.5"><a href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</a></dd>
+          </div>
+        )}
+        <div>
+          <dt class="text-[11px] uppercase tracking-[0.18em] opacity-45">{primaryChat.label}</dt>
+          <dd class="mt-1.5">
+            <a href={primaryChat.href} target="_blank" rel="noopener">{ui.contact.messageDirect}</a>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-[11px] uppercase tracking-[0.18em] opacity-45">{ui.contact.location}</dt>
+          <dd class="mt-1.5 leading-relaxed">{b.location}</dd>
+        </div>
+        <div>
+          <dt class="text-[11px] uppercase tracking-[0.18em] opacity-45">{ui.contact.businessHours}</dt>
+          <dd class="mt-1.5 leading-relaxed">{ui.contact.hoursLine1}<br />{ui.contact.hoursLine2}</dd>
+        </div>
+      </dl>
+
+      {site.isDemo && (
+        <div class="mt-10 rounded-xl border border-[var(--page-line)] p-5 text-sm">
+          <p class="text-[11px] uppercase tracking-[0.18em] opacity-45">{ui.contact.whoBuilt}</p>
+          <p class="mt-2 leading-relaxed opacity-80">
+            <strong class="font-medium">{b.name}</strong> — {b.role}, {b.location}. {ui.contact.whoBuiltText()}
+          </p>
+          <ul class="mt-3 flex flex-wrap gap-4 opacity-70">
+            <li><a href={`mailto:${b.email}`}>{ui.common.email}</a></li>
+            <li><a href={b.telegram} target="_blank" rel="noopener">Telegram</a></li>
+            <li><a href={b.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href={b.github} target="_blank" rel="noopener">GitHub</a></li>
+          </ul>
+        </div>
+      )}
+    </div>
+
+    <!--
+      Statik hostta sunucu yok: form JS ile iki yere gider — Firestore'a
+      (contactRequests, kurallar: firestore.rules) ve FormSubmit.co üzerinden
+      site.config.ts → email adresine e-posta olarak. İkisinden biri başarılıysa
+      ziyaretçi teşekkür sayfasına gider.
+    -->
+    <form
+      id="contact-form"
+      data-lang={lang}
+      data-thanks={thankYouHref(lang)}
+      data-project-id={site.firebase.projectId}
+      data-api-key={site.firebase.apiKey}
+      data-mail-to={site.email}
+      data-sending={ui.contact.form.sending}
+      data-currency={site.currency}
+      data-price-locale={site.priceLocale}
+      data-intro={ui.cart.messageIntro}
+      data-total-label={ui.cart.estimatedTotal}
+      class="space-y-4 text-sm"
+    >
+      <p class="hidden" aria-hidden="true">
+        <label>{ui.contact.form.honeypot} <input name="sirket-adi" tabindex="-1" autocomplete="off" /></label>
+      </p>
+
+      <div>
+        <label for="ad" class="mb-1.5 block opacity-60">{ui.contact.form.name}</label>
+        <input id="ad" name="ad" required autocomplete="name"
+          class="w-full rounded-lg border border-[var(--page-line)] bg-transparent px-3.5 py-2.5 outline-none transition-colors duration-200 focus:border-[var(--color-glow)]" />
+      </div>
+
+      <div>
+        <label for="eposta" class="mb-1.5 block opacity-60">{ui.contact.form.email}</label>
+        <input id="eposta" name="eposta" type="email" required autocomplete="email"
+          class="w-full rounded-lg border border-[var(--page-line)] bg-transparent px-3.5 py-2.5 outline-none transition-colors duration-200 focus:border-[var(--color-glow)]" />
+      </div>
+
+      <div>
+        <label for="telefon" class="mb-1.5 block opacity-60">{ui.contact.form.phone}</label>
+        <input id="telefon" name="telefon" type="tel" autocomplete="tel"
+          class="w-full rounded-lg border border-[var(--page-line)] bg-transparent px-3.5 py-2.5 outline-none transition-colors duration-200 focus:border-[var(--color-glow)]" />
+      </div>
+
+      <div>
+        <label for="urun" class="mb-1.5 block opacity-60">{ui.contact.form.product}</label>
+        <input id="urun" name="urun"
+          class="w-full rounded-lg border border-[var(--page-line)] bg-transparent px-3.5 py-2.5 outline-none transition-colors duration-200 focus:border-[var(--color-glow)]" />
+      </div>
+
+      <div>
+        <label for="mesaj" class="mb-1.5 block opacity-60">{ui.contact.form.message}</label>
+        <textarea id="mesaj" name="mesaj" rows="5" required
+          class="w-full resize-y rounded-lg border border-[var(--page-line)] bg-transparent px-3.5 py-2.5 outline-none transition-colors duration-200 focus:border-[var(--color-glow)]"></textarea>
+      </div>
+
+      <button type="submit" id="form-submit"
+        class="w-full cursor-pointer rounded-full bg-[var(--page-fg)] px-6 py-3 text-[var(--page-bg)] transition-[background-color,color,opacity] duration-300 hover:opacity-85 disabled:cursor-wait disabled:opacity-60">
+        {ui.contact.form.send}
+      </button>
+
+      <p id="form-error" role="alert" hidden class="rounded-lg border border-red-500/40 px-3.5 py-2.5 text-xs leading-relaxed text-red-500">
+        {ui.contact.form.error}
+      </p>
+
+      <p class="text-xs leading-relaxed opacity-45">
+        {ui.contact.form.privacy}
+      </p>
+    </form>
+  </div>
+
+  <script type="application/json" id="cart-catalog" is:inline set:html={jsonForScript(catalog)} />
+</Layout>
+
+<script>
+  import { read } from "../scripts/cart";
+
+  const params = new URLSearchParams(location.search);
+  const form = document.getElementById("contact-form") as HTMLFormElement;
+  const productField = document.getElementById("urun") as HTMLInputElement;
+  const messageField = document.getElementById("mesaj") as HTMLTextAreaElement;
+
+  // Ürün sayfasından gelen ?urun=... parametresini forma doldur
+  const product = params.get("urun");
+  if (product) productField.value = product.replace(/-/g, " ");
+
+  // Sepetten gelen ?cart=1 → sepet içeriğini mesaja yaz
+  if (params.get("cart")) {
+    const catalog: Record<string, { title: string; sku: string; price: number }> = JSON.parse(
+      document.getElementById("cart-catalog")!.textContent!,
+    );
+    const lines = read().filter((l) => catalog[l.id]);
+    if (lines.length) {
+      const fmt = new Intl.NumberFormat(form.dataset.priceLocale, {
+        style: "currency",
+        currency: form.dataset.currency,
+        maximumFractionDigits: 0,
+      });
+      let total = 0;
+      const text = lines.map((l) => {
+        const e = catalog[l.id];
+        total += e.price * l.qty;
+        return `- ${l.qty} × ${e.title} (${e.sku}) — ${fmt.format(e.price * l.qty)}`;
+      });
+      messageField.value = [form.dataset.intro, "", ...text, "", `${form.dataset.totalLabel}: ${fmt.format(total)}`].join("\n");
+      productField.value = lines.map((l) => catalog[l.id].title).join(", ");
+      form.dataset.fromCart = "1";
+    }
+  }
+
+  type Payload = { name: string; email: string; phone: string; product: string; message: string; lang: string };
+
+  async function saveToFirestore(p: Payload) {
+    const fields: Record<string, { stringValue: string } | { timestampValue: string }> = {
+      name: { stringValue: p.name },
+      email: { stringValue: p.email },
+      message: { stringValue: p.message },
+      lang: { stringValue: p.lang },
+      createdAt: { timestampValue: new Date().toISOString() },
+    };
+    if (p.phone) fields.phone = { stringValue: p.phone };
+    if (p.product) fields.product = { stringValue: p.product };
+
+    const url =
+      `https://firestore.googleapis.com/v1/projects/${form.dataset.projectId}` +
+      `/databases/(default)/documents/contactRequests?key=${form.dataset.apiKey}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields }),
+    });
+    if (!res.ok) throw new Error(`firestore ${res.status}`);
+  }
+
+  async function sendEmail(p: Payload) {
+    const res = await fetch(`https://formsubmit.co/ajax/${form.dataset.mailTo}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ ...p, _subject: `Lumora — ${p.name}`, _template: "table", _captcha: "false" }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || (body.success !== true && body.success !== "true")) throw new Error("email failed");
+  }
+
+  const submit = document.getElementById("form-submit") as HTMLButtonElement;
+  const errorBox = document.getElementById("form-error") as HTMLElement;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const field = (k: string) => String(data.get(k) ?? "").trim();
+    const done = () => {
+      // Sepetten gönderildiyse, teşekkür sayfasında sepeti boşalt
+      if (form.dataset.fromCart === "1") {
+        try { sessionStorage.setItem("lamp-cart-sent", "1"); } catch {}
+      }
+      location.href = form.dataset.thanks!;
+    };
+
+    if (field("sirket-adi")) return done();
+
+    const payload: Payload = {
+      name: field("ad"),
+      email: field("eposta"),
+      phone: field("telefon"),
+      product: field("urun"),
+      message: field("mesaj"),
+      lang: form.dataset.lang!,
+    };
+
+    errorBox.hidden = true;
+    const label = submit.textContent;
+    submit.disabled = true;
+    submit.textContent = form.dataset.sending!;
+
+    const results = await Promise.allSettled([saveToFirestore(payload), sendEmail(payload)]);
+    if (results.some((r) => r.status === "fulfilled")) return done();
+
+    submit.disabled = false;
+    submit.textContent = label;
+    errorBox.hidden = false;
+  });
+</script>
