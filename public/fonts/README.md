@@ -1,7 +1,7 @@
 # Gilroy font dosyaları
 
-Gilroy **ticari bir fonttur** (Fontfabric). Web lisansını satın aldıktan sonra
-`.woff2` dosyalarını buraya, tam olarak bu isimlerle koyun:
+Gilroy **ticari bir fonttur** (Fontfabric) ve repoda yer almaz. Web lisansını satın aldıktan sonra
+`.woff2` dosyalarını buraya, şu isimlerle koyun:
 
     Gilroy-Light.woff2       (300)
     Gilroy-Regular.woff2     (400)
@@ -10,16 +10,28 @@ Gilroy **ticari bir fonttur** (Fontfabric). Web lisansını satın aldıktan son
     Gilroy-Bold.woff2        (700)
     Gilroy-ExtraBold.woff2   (800)
 
-Dosyalar buraya konduğu anda site otomatik Gilroy'a geçer — kodda hiçbir
-değişiklik gerekmez (`src/styles/global.css` içindeki `@font-face` blokları
-bu yolları zaten işaret ediyor).
+## Etkinleştirme
+
+Dosyalar yokken `@font-face` tanımlamak tarayıcıda 404 hatalarına yol açtığı için
+`src/styles/global.css` içinde bu bloklar **bilerek yok**. Dosyaları koyduktan sonra aşağıdakini
+`global.css` içindeki `@theme { ... }` bloğundan **önce** yapıştırın (font yığını zaten
+`Gilroy → Outfit → sistem` olarak hazır):
+
+```css
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-Light.woff2") format("woff2");     font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-Regular.woff2") format("woff2");   font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-Medium.woff2") format("woff2");    font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-SemiBold.woff2") format("woff2");  font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-Bold.woff2") format("woff2");      font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gilroy"; src: url("/fonts/Gilroy-ExtraBold.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+```
+
+Sonra `src/layouts/Layout.astro` içindeki Google Fonts `<link>` satırlarını silin: bir DNS araması ve
+render-blocking bir istek kalkar, LCP düşer.
 
 ## Dosyalar gelene kadar
 
-Yedek olarak Google Fonts'tan **Outfit** yükleniyor — Gilroy'a en yakın
-ücretsiz geometrik sans. Gilroy'u koyduktan sonra `src/layouts/Layout.astro`
-içindeki Google Fonts `<link>` satırlarını silin: hem bir DNS + istek tasarrufu
-olur hem de LCP düşer.
+Yedek olarak Google Fonts'tan **Outfit** yüklenir, Gilroy'a en yakın ücretsiz geometrik sans.
 
 ## Elinizde .otf / .ttf varsa
 

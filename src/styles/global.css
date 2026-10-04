@@ -1,54 +1,12 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
-   GILROY
-   Ticari font (Fontfabric). Dosyalar public/fonts/ içine konduğu anda
-   devreye girer; yoksa tarayıcı sessizce sıradaki aileye düşer.
-   Yedek: Outfit (Google Fonts) — Gilroy'a en yakın ücretsiz geometrik sans.
-   Ayrıntı: public/fonts/README.md
+   FONT
+   Arayüz Gilroy için tasarlandı (ticari font, repoda yok). Dosyalar olmadan
+   @font-face yazmak 404 üretir; bu yüzden şimdilik yalnızca font yığını var:
+   Gilroy (kullanıcıda kuruluysa) → Outfit (Google Fonts, Layout.astro) → sistem.
+   Lisanslı .woff2 dosyalarını eklemek için: public/fonts/README.md
    --------------------------------------------------------------- */
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-SemiBold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Gilroy";
-  src: url("/fonts/Gilroy-ExtraBold.woff2") format("woff2");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
 
 @theme {
   /* Başlıklar: Gilroy Light/SemiBold — geniş harf aralığıyla */

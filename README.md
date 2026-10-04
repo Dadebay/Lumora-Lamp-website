@@ -378,10 +378,10 @@ produced in full.
 
 ## Font
 
-The UI was designed with **Gilroy**. Gilroy is a commercial font (Fontfabric) and is not included in the repo.
-As soon as you drop the licensed `.woff2` files into `public/fonts/` the site switches to Gilroy automatically
-(file names are listed in `public/fonts/README.md`). Until then **Outfit** is loaded from Google Fonts; once Gilroy
-is in place, delete the Google Fonts lines in `src/layouts/Layout.astro`.
+The UI was designed with **Gilroy**, a commercial font (Fontfabric) that is not included in the repo. Until you add it,
+**Outfit** is loaded from Google Fonts (the closest free geometric sans) and the font stack is `Gilroy → Outfit → system`.
+The `@font-face` rules are intentionally absent so the browser does not request missing files and log 404s; once you have the
+licensed `.woff2` files, follow `public/fonts/README.md` (copy-paste snippet) and delete the Google Fonts lines in `src/layouts/Layout.astro`.
 
 ## Roadmap
 
