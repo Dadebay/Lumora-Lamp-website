@@ -7,7 +7,7 @@
 A trilingual lighting-catalog template where a single switch turns the whole page,
 and every lamp in the collection, into warm light.
 
-[![Astro](https://img.shields.io/badge/Astro-5-BC52EE?logo=astro&logoColor=white)](https://astro.build)
+[![Astro](https://img.shields.io/badge/Astro-7-BC52EE?logo=astro&logoColor=white)](https://astro.build)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Firebase Hosting](https://img.shields.io/badge/Firebase-Hosting-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/products/hosting)
@@ -130,7 +130,7 @@ The cart lives in the browser and there is no checkout: the cart turns into a **
 
 | | |
 |---|---|
-| Framework | [Astro 5](https://astro.build) (fully static output) |
+| Framework | [Astro 7](https://astro.build) (fully static output) |
 | Styling | [Tailwind CSS 4](https://tailwindcss.com), light/dark state driven by CSS variables |
 | Language | TypeScript (checked with `astro check`) |
 | Content | Astro Content Collections (Markdown + Zod schema) |
@@ -140,13 +140,17 @@ The cart lives in the browser and there is no checkout: the cart turns into a **
 
 ## Quick start
 
+Use Node.js 22.23.4 or newer.
+
 ```bash
-npm install
+npm ci
 npm run dev       # dev server  → http://localhost:4321
 npm run build     # produce dist/
 npm run preview   # serve the production build locally
 npm run check     # astro check (types + .astro files)
 ```
+
+GitHub Actions runs `npm ci`, `npm run check`, `npm run build`, and a high-severity dependency audit for pushes and pull requests. The live Firebase Hosting site is deployed separately.
 
 Pages: English at the root, Turkish under `/tr/`, Russian under `/ru/`.
 
